@@ -1,0 +1,126 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#define MAX_FILENAME_LENGTH 50 
+struct File { 
+char filename[MAX_FILENAME_LENGTH]; 
+int start_block; // Starting block index of the file 
+int file_size; // Size of the file in blocks 
+struct File* next; // Pointer to the next file in the linked list 
+}; 
+struct File* file_system = NULL; // Linked list representing the file system 
+// Function to create a new file and add it to the file system 
+void createFile(char filename[MAX_FILENAME_LENGTH], int file_size) { 
+struct File* new_file = (struct File*)malloc(sizeof(struct File)); 
+if (new_file == NULL) { 
+printf("Error: Memory allocation failed.\n"); 
+return; 
+} 
+strcpy(new_file->filename, filename); 
+new_file->file_size = file_size; 
+// Find an empty block for the new file 
+int block_index = 0; 
+struct File* current_file = file_system; 
+while (current_file != NULL) { 
+if (block_index + file_size <= current_file->start_block) { 
+break; // Found an empty block 
+} 
+block_index = current_file->start_block + current_file->file_size; 
+current_file = current_file->next; 
+} 
+new_file->start_block = block_index; 
+new_file->next = NULL; 
+// Add the new file to the file system linked list 
+if (file_system == NULL) { 
+file_system = new_file; 
+} else { 
+Dept. of ISE, JSSATEB 
+43 
+Operating System Lab Manual 
+BCS303 
+current_file = file_system; 
+while (current_file->next != NULL) { 
+current_file = current_file->next; 
+} 
+current_file->next = new_file; 
+} 
+printf("File '%s' created with size %d blocks starting from block %d.\n", filename, 
+file_size, block_index); 
+} 
+void deleteFile(char filename[MAX_FILENAME_LENGTH]) { 
+struct File* current_file = file_system; 
+struct File* prev_file = NULL; 
+while (current_file != NULL) { 
+if (strcmp(current_file->filename, filename) == 0) { 
+if (prev_file == NULL) { 
+file_system = current_file->next; 
+} else { 
+prev_file->next = current_file->next; 
+} 
+free(current_file); 
+printf("File '%s' deleted.\n", filename); 
+return; 
+} 
+prev_file = current_file; 
+current_file = current_file->next; 
+} 
+printf("File '%s' not found.\n", filename); 
+} 
+// Function to list all files in the file system 
+void listFiles() { 
+struct File* current_file = file_system; 
+if (current_file == NULL) { 
+printf("No files in the file system.\n"); 
+return; 
+} 
+printf("Files in the file system:\n"); 
+while (current_file != NULL) { 
+printf("- File: %s, Size: %d blocks, Start Block: %d\n", current_file->filename, 
+current_file->file_size, current_file->start_block); 
+current_file = current_file->next; 
+} 
+} 
+Dept. of ISE, JSSATEB 
+44 
+Operating System Lab Manual 
+BCS303 
+int main() { 
+int choice; 
+while (1) { 
+printf("\nLinked File Allocation:\n"); 
+printf("1. Create File\n"); 
+printf("2. Delete File\n"); 
+printf("3. List Files\n"); 
+printf("4. Exit\n"); 
+printf("Enter your choice: "); 
+scanf("%d", &choice); 
+switch (choice) { 
+case 1: { 
+char filename[MAX_FILENAME_LENGTH]; 
+int file_size; 
+printf("Enter the filename: "); 
+scanf("%s", filename); 
+printf("Enter the file size in blocks: "); 
+scanf("%d", &file_size); 
+createFile(filename, file_size); 
+break; 
+} 
+case 2: { 
+char filename[MAX_FILENAME_LENGTH]; 
+printf("Enter the filename to delete: "); 
+scanf("%s", filename); 
+deleteFile(filename); 
+break; 
+} 
+case 3: 
+listFiles(); 
+break; 
+case 4: 
+printf("Exiting...\n"); 
+exit(0); 
+default: 
+printf("Invalid choice.\n"); 
+} 
+} 
+return 0; 
+}
