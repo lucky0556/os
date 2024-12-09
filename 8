@@ -1,0 +1,354 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#define MAX_FILES 100 
+#define MAX_FILENAME_LENGTH 50 
+struct File { 
+char filename[MAX_FILENAME_LENGTH]; 
+char content[100]; 
+}; 
+struct Directory { 
+char dirname[MAX_FILENAME_LENGTH]; 
+int file_count; 
+struct File files[MAX_FILES]; 
+}; 
+struct SingleLevelFileSystem { 
+int dir_count; 
+struct Directory directories[MAX_FILES]; 
+}; 
+struct TwoLevelFileSystem { 
+int user_count; 
+struct Directory users[MAX_FILES]; 
+}; 
+// Initialize the single-level file system 
+void initializeSingleLevelFileSystem(struct SingleLevelFileSystem *fs) { 
+fs->dir_count = 0; 
+} 
+// Initialize the two-level file system 
+void initializeTwoLevelFileSystem(struct TwoLevelFileSystem *fs) { 
+fs->user_count = 0; 
+} 
+// Create a directory in the single-level file system 
+void createDirectorySingleLevel(struct SingleLevelFileSystem *fs, char 
+dirname[MAX_FILENAME_LENGTH]) { 
+if (fs->dir_count < MAX_FILES) { 
+strcpy(fs->directories[fs->dir_count].dirname, dirname); 
+fs->directories[fs->dir_count].file_count = 0; 
+fs->dir_count++; 
+printf("Directory '%s' created.\n", dirname); 
+Dept. of ISE, JSSATEB 
+33 
+Operating System Lab Manual 
+BCS303 
+} else { 
+printf("Cannot create directory '%s'. Maximum directory count reached.\n", 
+dirname); 
+} 
+} 
+// Create a directory in the two-level file system 
+void createDirectoryTwoLevel(struct TwoLevelFileSystem *fs, char 
+username[MAX_FILENAME_LENGTH], char dirname[MAX_FILENAME_LENGTH]) 
+{ 
+int user_index = -1; 
+// Find the user index 
+for (int i = 0; i < fs->user_count; i++) { 
+if (strcmp(fs->users[i].dirname, username) == 0) { 
+user_index = i; 
+break; 
+} 
+} 
+if (user_index == -1) { 
+if (fs->user_count < MAX_FILES) { 
+strcpy(fs->users[fs->user_count].dirname, username); 
+user_index = fs->user_count; 
+fs->user_count++; 
+} else { 
+printf("Cannot create directory '%s' for user '%s'. Maximum user count 
+reached.\n", dirname, username); 
+return; 
+} 
+} 
+if (fs->users[user_index].file_count < MAX_FILES) { 
+strcpy(fs->users[user_index].directories[fs->users[user_index].file_count].dirname, 
+dirname); 
+fs->users[user_index].directories[fs->users[user_index].file_count].file_count = 0; 
+fs->users[user_index].file_count++; 
+printf("Directory '%s/%s' created.\n", username, dirname); 
+} else { 
+printf("Cannot create directory '%s/%s'. Maximum directory count reached for user 
+'%s'.\n", username, dirname, username); 
+} 
+} 
+// Create a file in a directory in the single-level file system 
+void createFileSingleLevel(struct SingleLevelFileSystem *fs, char 
+dirname[MAX_FILENAME_LENGTH], char filename[MAX_FILENAME_LENGTH], 
+char content[100]) { 
+int dir_index = -1; 
+Dept. of ISE, JSSATEB 
+34 
+Operating System Lab Manual 
+BCS303 
+// Find the directory index 
+for (int i = 0; i < fs->dir_count; i++) { 
+if (strcmp(fs->directories[i].dirname, dirname) == 0) { 
+dir_index = i; 
+break; 
+} 
+} 
+if (dir_index == -1) { 
+printf("Directory '%s' not found. Cannot create file '%s'.\n", dirname, filename); 
+return; 
+} 
+if (fs->directories[dir_index].file_count < MAX_FILES) { 
+strcpy(fs->directories[dir_index].files[fs- 
+>directories[dir_index].file_count].filename, filename); 
+strcpy(fs->directories[dir_index].files[fs->directories[dir_index].file_count].content, 
+content); 
+fs->directories[dir_index].file_count++;  
+printf("File '%s/%s' created.\n", dirname, filename); 
+} else { 
+printf("Cannot create file '%s/%s'. Maximum file count reached for directory 
+'%s'.\n", dirname, filename, dirname); 
+} 
+} 
+// Create a file in a directory in the two-level file system 
+void createFileTwoLevel(struct TwoLevelFileSystem *fs, char 
+username[MAX_FILENAME_LENGTH], char dirname[MAX_FILENAME_LENGTH], 
+char filename[MAX_FILENAME_LENGTH], char content[100]) { 
+int user_index = -1; 
+// Find the user index 
+for (int i = 0; i < fs->user_count; i++) { 
+if (strcmp(fs->users[i].dirname, username) == 0) { 
+user_index = i; 
+break; 
+} 
+} 
+if (user_index == -1) { 
+printf("User '%s' not found. Cannot create file '%s/%s'.\n", username, dirname, 
+filename); 
+return; 
+} 
+int dir_index = -1; 
+// Find the directory index 
+for (int i = 0; i < fs->users[user_index].file_count; i++) { 
+
+if (strcmp(fs->users[user_index].directories[i].dirname, dirname) == 0) { 
+dir_index = i; 
+break; 
+} 
+} 
+if (dir_index == -1) { 
+printf("Directory '%s/%s' not found. Cannot create file '%s/%s'.\n", username, 
+dirname, dirname, filename); 
+return; 
+} 
+if (fs->users[user_index].directories[dir_index].file_count < MAX_FILES) { 
+strcpy(fs->users[user_index].directories[dir_index].files[fs- 
+>users[user_index].directories[dir_index].file_count].filename, filename); 
+strcpy(fs->users[user_index].directories[dir_index].files[fs- 
+>users[user_index].directories[dir_index].file_count].content, content); 
+fs->users[user_index].directories[dir_index].file_count++; 
+printf("File '%s/%s/%s' created.\n", username, dirname, filename); 
+} else { 
+printf("Cannot create file '%s/%s/%s'. Maximum file count reached for directory 
+'%s/%s'.\n", username, dirname, filename, username, dirname); 
+} 
+} 
+// List files in a directory in the single-level file system 
+void listFilesSingleLevel(struct SingleLevelFileSystem *fs, char 
+dirname[MAX_FILENAME_LENGTH]) { 
+int dir_index = -1; 
+// Find the directory index 
+for (int i = 0; i < fs->dir_count; i++) { 
+if (strcmp(fs->directories[i].dirname, dirname) == 0) { 
+dir_index = i; 
+break; 
+} 
+} 
+if (dir_index == -1) { 
+printf("Directory '%s' not found.\n", dirname); 
+return; 
+} 
+printf("Files in directory '%s':\n", dirname); 
+for (int i = 0; i < fs->directories[dir_index].file_count; i++) { 
+printf("- %s\n", fs->directories[dir_index].files[i].filename); 
+} 
+} 
+// List files in a directory in the two-level file system 
+Dept. of ISE, JSSATEB 
+36 
+Operating System Lab Manual 
+BCS303 
+void listFilesTwoLevel(struct TwoLevelFileSystem *fs, char 
+username[MAX_FILENAME_LENGTH], char dirname[MAX_FILENAME_LENGTH]) 
+{ 
+int user_index = -1; 
+// Find the user index 
+for (int i = 0; i < fs->user_count; i++) { 
+if (strcmp(fs->users[i].dirname, username) == 0) { 
+user_index = i; 
+break; 
+} 
+} 
+if (user_index == -1) { 
+printf("User '%s' not found.\n", username); 
+return; 
+} 
+int dir_index = -1; 
+// Find the directory index 
+for (int i = 0; i < fs->users[user_index].file_count; i++) { 
+if (strcmp(fs->users[user_index].directories[i].dirname, dirname) == 0) { 
+dir_index = i; 
+break; 
+} 
+} 
+if (dir_index == -1) { 
+printf("Directory '%s/%s' not found.\n", username, dirname); 
+return; 
+} 
+printf("Files in directory '%s/%s':\n", username, dirname); 
+for (int i = 0; i < fs->users[user_index].directories[dir_index].file_count; i++) { 
+printf("- %s\n", fs->users[user_index].directories[dir_index].files[i].filename); 
+} 
+} 
+int main() { 
+int choice; 
+struct SingleLevelFileSystem singleLevelFS; 
+struct TwoLevelFileSystem twoLevelFS; 
+initializeSingleLevelFileSystem(&singleLevelFS); 
+initializeTwoLevelFileSystem(&twoLevelFS); 
+while (1) { 
+printf("\nFile Organization Techniques:\n"); 
+printf("1. Single-Level Directory\n"); 
+Dept. of ISE, JSSATEB 
+37 
+Operating System Lab Manual 
+BCS303 
+printf("2. Two-Level Directory\n"); 
+printf("3. Exit\n"); 
+printf("Enter your choice: "); 
+scanf("%d", &choice); 
+switch (choice) { 
+case 1: { 
+int singleLevelChoice; 
+printf("\nSingle-Level Directory:\n"); 
+printf("1. Create Directory\n"); 
+printf("2. Create File\n"); 
+printf("3. List Files\n"); 
+printf("4. Back to Main Menu\n"); 
+printf("Enter your choice: "); 
+scanf("%d", &singleLevelChoice); 
+switch (singleLevelChoice) { 
+case 1: { 
+char dirname[MAX_FILENAME_LENGTH]; 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+createDirectorySingleLevel(&singleLevelFS, dirname); 
+break; 
+} 
+case 2: { 
+char dirname[MAX_FILENAME_LENGTH]; 
+char filename[MAX_FILENAME_LENGTH]; 
+char content[100]; 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+printf("Enter the file name: "); 
+scanf("%s", filename); 
+printf("Enter the file content: "); 
+scanf("%s", content); 
+createFileSingleLevel(&singleLevelFS, dirname, filename, content); 
+break; 
+} 
+case 3: { 
+char dirname[MAX_FILENAME_LENGTH]; 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+listFilesSingleLevel(&singleLevelFS, dirname); 
+break; 
+} 
+case 4: 
+break; 
+default: 
+printf("Invalid choice.\n"); 
+} 
+break; 
+Dept. of ISE, JSSATEB 
+38 
+Operating System Lab Manual 
+BCS303 
+} 
+case 2: { 
+int twoLevelChoice; 
+printf("\nTwo-Level Directory:\n"); 
+printf("1. Create User\n"); 
+printf("2. Create Directory\n"); 
+printf("3. Create File\n"); 
+printf("4. List Files\n"); 
+printf("5. Back to Main Menu\n"); 
+printf("Enter your choice: "); 
+scanf("%d", &twoLevelChoice); 
+switch (twoLevelChoice) { 
+case 1: { 
+char username[MAX_FILENAME_LENGTH]; 
+printf("Enter the username: "); 
+scanf("%s", username); 
+createDirectoryTwoLevel(&twoLevelFS, username, username); 
+break; 
+} 
+case 2: { 
+char username[MAX_FILENAME_LENGTH]; 
+char dirname[MAX_FILENAME_LENGTH]; 
+printf("Enter the username: "); 
+scanf("%s", username); 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+createDirectoryTwoLevel(&twoLevelFS, username, dirname); 
+break; 
+} 
+case 3: { 
+char username[MAX_FILENAME_LENGTH]; 
+char dirname[MAX_FILENAME_LENGTH]; 
+char filename[MAX_FILENAME_LENGTH]; 
+char content[100]; 
+printf("Enter the username: "); 
+scanf("%s", username); 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+printf("Enter the file name: "); 
+scanf("%s", filename); 
+printf("Enter the file content: "); 
+scanf("%s", content); 
+createFileTwoLevel(&twoLevelFS, username, dirname, filename, 
+content); 
+break; 
+} 
+case 4: { 
+char username[MAX_FILENAME_LENGTH]; 
+char dirname[MAX_FILENAME_LENGTH]; 
+Dept. of ISE, JSSATEB 
+39 
+Operating System Lab Manual 
+BCS303 
+printf("Enter the username: "); 
+scanf("%s", username); 
+printf("Enter the directory name: "); 
+scanf("%s", dirname); 
+listFilesTwoLevel(&twoLevelFS, username, dirname); 
+break; 
+} 
+case 5: 
+break; 
+default: 
+printf("Invalid choice.\n"); 
+} 
+break; 
+} 
+case 3: 
+printf("Exiting...\n"); 
+exit(0); 
+default: 
+printf("Invalid choice.\n"); 
+} 
+} 
+return 0; 
+} 
