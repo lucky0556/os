@@ -1,0 +1,121 @@
+#include<stdio.h> 
+#include<stdlib.h> 
+#include<stdbool.h> 
+#define MAX_FRAMES 3 
+int frames[MAX_FRAMES]; 
+int page_queue[MAX_FRAMES]; 
+int frame_count = 0; 
+int page_fault_count = 0; 
+int victim = 0; 
+void initialize() 
+{ 
+for(int i=0;i<MAX_FRAMES;i++) 
+{ 
+frames[i] = -1; 
+page_queue[i] = -1; 
+} 
+} 
+void displayFrames() 
+{ 
+printf("Frames: "); 
+for(int i=0;i<MAX_FRAMES;i++)
+{ 
+if(frames[i] != -1) printf("%d ",frames[i]); 
+} 
+printf("\n"); 
+} 
+void FIFO(int page) 
+{ 
+for(int i=0;i<MAX_FRAMES;i++)
+{ 
+if(frames[i] == page)
+{ 
+return; 
+} 
+} 
+if(frame_count<MAX_FRAMES) 
+{ 
+frames[frame_count] = page; 
+page_queue[frame_count] = page; 
+frame_count++; 
+page_fault_count++; 
+} else 
+{ 
+if(victim == MAX_FRAMES)
+{ 
+victim = 0; 
+} 
+page_fault_count++; 
+int replaced_page = page_queue[victim]; 
+frames[victim] = page; 
+page_queue[victim++] = page; 
+} 
+} 
+Dept. of ISE, JSSATEB 
+30 
+Operating System Lab Manual 
+BCS303 
+void LRU(int page)
+{ 
+for(int i=0;i<MAX_FRAMES;i++) 
+{ 
+if(frames[i] == page) 
+{ 
+return; 
+} 
+} 
+if(frame_count<MAX_FRAMES)
+{ 
+frames[frame_count] = page; 
+page_queue[frame_count] = page; 
+frame_count++; 
+page_fault_count++; 
+} else 
+{ 
+page_fault_count++; 
+int replaced_page = page_queue[0]; 
+for(int i=0;i<MAX_FRAMES-1;i++)
+{ 
+page_queue[i] = page_queue[i+1]; 
+} 
+frames[MAX_FRAMES-1] = page; 
+page_queue[MAX_FRAMES-1] = page; 
+} 
+} 
+int main()
+{ 
+int n; 
+printf("Enter the number of page references: "); 
+scanf("%d",&n); 
+int pages[n]; 
+printf("Enter the page reference sequence: "); 
+for(int i=0;i<n;i++) 
+{ 
+scanf("%d",&pages[i]); 
+} 
+initialize(); 
+printf("\n FIFO Page replacement algorithm:\n"); 
+frame_count = 0; 
+page_fault_count = 0; 
+for(int i=0;i<n;i++)
+{ 
+FIFO(pages[i]); 
+displayFrames(); 
+} 
+printf("Total Page Faults(FIFO): %d\n",page_fault_count); 
+initialize(); 
+printf("\nLRU Page Replacement Algorithm: \n"); 
+frame_count = 0; 
+Dept. of ISE, JSSATEB 
+31 
+Operating System Lab Manual 
+BCS303 
+page_fault_count = 0; 
+for(int i=0;i<n;i++)
+{ 
+LRU(pages[i]); 
+displayFrames(); 
+} 
+printf("Total Page faults(LRU): %d\n",page_fault_count); 
+return 0; 
+}
