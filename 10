@@ -1,0 +1,95 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+#define MAX_CYLINDERS 200 
+#define MIN_CYLINDERS 0 
+// Function to sort an array in ascending order 
+void sort(int arr[], int n) { 
+int temp; 
+for (int i = 0; i < n - 1; i++) { 
+for (int j = 0; j < n - i - 1; j++) { 
+if (arr[j] > arr[j + 1]) { 
+temp = arr[j]; 
+arr[j] = arr[j + 1]; 
+arr[j + 1] = temp; 
+} 
+} 
+} 
+} 
+// Function to simulate the SCAN disk scheduling algorithm 
+int SCAN(int request[], int n, int start) { 
+int total_seek_time = 0; 
+// Sort the request array in ascending order 
+sort(request, n); 
+int current = start; 
+int direction = 1; // 1 for right, -1 for left 
+printf("Sequence of disk head movement:\n"); 
+// Find the position of the current request in the sorted array 
+int i; 
+for (i = 0; i < n; i++) { 
+if (request[i] >= start) { 
+break; 
+} 
+} 
+while (i < n) { 
+if (direction == 1) { 
+for (; i < n; i++) { 
+if (request[i] > current) { 
+int seek = request[i] - current; 
+printf("Move from %d to %d (seek: %d)\n", current, request[i], seek); 
+total_seek_time += seek; 
+Dept. of ISE, JSSATEB 
+47 
+Operating System Lab Manual 
+BCS303 
+current = request[i]; 
+} 
+} 
+direction = -1; // Change direction to left 
+} else { 
+for (i = i - 1; i >= 0; i--) { 
+if (request[i] < current) { 
+int seek = current - request[i]; 
+printf("Move from %d to %d (seek: %d)\n", current, request[i], seek); 
+total_seek_time += seek; 
+current = request[i]; 
+} 
+} 
+direction = 1; // Change direction to right 
+} 
+} 
+return total_seek_time; 
+} 
+int main() { 
+int n, start; 
+printf("Enter the number of disk requests: "); 
+scanf("%d", &n); 
+if (n <= 0 || n > MAX_CYLINDERS) { 
+printf("Invalid number of disk requests. Please enter a value between 1 and 
+%d.\n", MAX_CYLINDERS); 
+return 1; 
+} 
+int request[n]; 
+printf("Enter the disk requests: "); 
+for (int i = 0; i < n; i++) { 
+scanf("%d", &request[i]); 
+if (request[i] < MIN_CYLINDERS || request[i] >= MAX_CYLINDERS) { 
+printf("Invalid disk request. Please enter a value between %d and %d.\n", 
+MIN_CYLINDERS, MAX_CYLINDERS - 1); 
+return 1; 
+} 
+} 
+printf("Enter the starting position of the disk head: "); 
+scanf("%d", &start); 
+if (start < MIN_CYLINDERS || start >= MAX_CYLINDERS) { 
+printf("Invalid starting position. Please enter a value between %d and %d.\n", 
+MIN_CYLINDERS, MAX_CYLINDERS - 1); 
+return 1; 
+} 
+Dept. of ISE, JSSATEB 
+48 
+Operating System Lab Manual 
+BCS303 
+int total_seek_time = SCAN(request, n, start); 
+printf("Total seek time: %d\n", total_seek_time); 
+return 0; 
+}
